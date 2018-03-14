@@ -4,13 +4,13 @@
 ## Content 
 This rep contains some useful deep learning related tools implemented primarily using CNTK C# library.
 Current contents:
-- Helper functions to build/train neural network layers.
+- Helper functions to build/train neural network layers. (https://docs.microsoft.com/en-us/cognitive-toolkit/)
   - Layers definitions
   - Simple Sequential neural network
   - cGAN
-- Universal Style Transfer
+- Universal Style Transfer(https://arxiv.org/pdf/1705.08086.pdf)
 - Reinforcement Learning
-  - PPO
+  - PPO(https://arxiv.org/pdf/1707.06347.pdf)
   
 ## Platform and Installation
 Current it only works on windows platform. If you need to use GPU for NN, you also need a proper Nvidia graphic card.
