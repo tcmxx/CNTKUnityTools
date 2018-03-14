@@ -68,6 +68,7 @@ trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate), buf
         if (reset)
         {
             environment.Reset();
+            episodesThisTrain++;
             // If certain number of episodes' data is collected, start the train
             // Ideally only one episode of run is needed and instead multiply agent will run in parallel to get more data.
             if (episodesThisTrain >= episodeToRunForEachTrain)
