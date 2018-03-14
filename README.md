@@ -17,12 +17,12 @@ Current it only works on windows platform. If you need to use GPU for NN, you al
 Installation steps:
 1. Download the repo(Unity project)
 2. Download the zip that includes necessary dlls https://drive.google.com/open?id=1VWEiXJw3PSdeXfBrimPevdCWdbUyHd_0
-3. Put the dlls in correct places. (Adapted from https://github.com/aiunderstand/unity-cntk/blob/master/README.md.)
-  - Copy those files/folders into any Plugins folder under yourproject/Assets.
-    - Cntk.Core.Managed-2.4.dll
-    - MathNet.Numerics.dll
-    - MathNet.Numerics.MKL.dll
-    - System.Drawing.dll
-    - Accord folder
-  - Copy other dlls and put them DIRECTLY under yourproject folder, or another place that Windows can find those dlls.
-
+3. Put the dlls in correct places as follow. (Adapted from https://github.com/aiunderstand/unity-cntk/blob/master/README.md.)
+- Copy those files/folders into any Plugins folder under yourproject/Assets.
+    * Cntk.Core.Managed-2.4.dll
+    * MathNet.Numerics.dll
+    * MathNet.Numerics.MKL.dll
+    * System.Drawing.dll
+    * Accord folder
+- Copy other dlls and put them DIRECTLY under yourproject folder, or another place that Windows can find those dlls.
+4. Done.
