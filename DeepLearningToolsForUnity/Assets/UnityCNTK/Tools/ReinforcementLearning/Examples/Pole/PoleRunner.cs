@@ -4,11 +4,13 @@ using UnityEngine;
 using UnityCNTK;
 using CNTK;
 using UnityEngine.UI;
+using System.IO;
 
 public class PoleRunner : MonoBehaviour {
 
     public Text scoreUI;
     public PoleGameEnviroment environment;
+    public string saveDataPath = "PolePendulum.bytes";
     public float learningRate = 0.001f;
     protected PPOModel model;
     protected TrainerPPOSimple trainer;
@@ -84,6 +86,15 @@ public class PoleRunner : MonoBehaviour {
 
         }
     }
-    
+    public void Save()
+    {
+        var data = model.Save();
+        File.WriteAllBytes(saveDataPath, data);
+    }
+    public void Load()
+    {
+        var bytes = File.ReadAllBytes(saveDataPath);
+        model.Restore(bytes);
+    }
 }
 

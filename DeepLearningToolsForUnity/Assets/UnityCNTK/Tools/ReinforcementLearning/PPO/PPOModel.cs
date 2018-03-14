@@ -70,7 +70,7 @@ namespace UnityCNTK {
             OutputProbabilities = null; //this is for discrete action only.
 
             //the variance output will use a seperate parameter as in Unity's implementation
-            var log_sigma_sq = new Parameter(new int[] { actionSize }, DataType.Float, CNTKLib.ConstantInitializer(0), device);
+            var log_sigma_sq = new Parameter(new int[] { actionSize }, DataType.Float, CNTKLib.ConstantInitializer(0), device, "PPO.log_sigma_square");
             //test
             
             OutputVariance = CNTKLib.Exp(log_sigma_sq);
@@ -183,6 +183,16 @@ namespace UnityCNTK {
             OutputLoss = CNTKLib.Minus(OutputLoss,CNTKLib.ElementTimes(InputEntropyLossWeight,OutputEntropy));
         }
 
+        public byte[] Save()
+        {
+            return OutputLoss.ToFunction().Save();
+        }
+
+        public void Restore(byte[] data)
+        {
+            Function f = Function.Load(data, Device);
+            OutputLoss.ToFunction().RestoreParametersByName(f);
+        }
 
 
         public int[] EvaluateActionDiscrete(float[] state, out float[] actionProbs, bool useProbability = true)
@@ -259,7 +269,7 @@ namespace UnityCNTK {
                     actionProbs[i * batchSize + j] = (float)Normal.PDF(means[i][j], std, actions[i * batchSize + j]);
                 }
             }
-
+            
             //test
             //var test = outputDataMap[testOutputProb].GetDenseData<float>(testOutputProb)[0];
             //Debug.Log("test:" + string.Join(",", test));

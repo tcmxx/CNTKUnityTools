@@ -87,8 +87,6 @@ public class Ball3DEnviroment : MonoBehaviour, IRLEnvironment
                 if (is3D)
                 {
                     float action_x = act[1];
-                    //test 2d
-                    action_x = 0;
                     if (action_x > 2f)
                     {
                         action_x = 2f;
@@ -175,10 +173,12 @@ public class Ball3DEnviroment : MonoBehaviour, IRLEnvironment
         {
             gameObject.transform.Rotate(new Vector3(1, 0, 0), Random.Range(-10f, 10f));
             ball.transform.position = new Vector3(Random.Range(-1.5f, 1.5f), 4f, Random.Range(-1.5f, 1.5f)) + gameObject.transform.position;
+            ball.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
         }
         else
         {
             ball.transform.position = new Vector3(Random.Range(-1.5f, 1.5f), 4f, Random.Range(0, 0)) + gameObject.transform.position;
+            ball.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
         }
         //
         gameObject.transform.Rotate(new Vector3(0, 0, 1), Random.Range(-10f, 10f));

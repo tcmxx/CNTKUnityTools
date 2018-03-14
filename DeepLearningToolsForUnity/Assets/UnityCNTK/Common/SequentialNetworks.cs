@@ -25,7 +25,7 @@ namespace UnityCNTK
         /// <param name="hiddenLayers">hidden layers specs for the resnet.</param>
         /// <param name="output">output specs for the resnet</param>
         /// Note that those input well not be copied.
-        public SequentialNetworkDense(LayerDefinitions.InputLayerDef input, LayerDefinitions.LayerDef[] hiddenLayers, LayerDefinitions.OutputLayerDef output, DeviceDescriptor device)
+        public SequentialNetworkDense(LayerDefinitions.InputLayerDef input, LayerDefinitions.LayerDef[] hiddenLayers, LayerDefinitions.OutputLayerDef output, DeviceDescriptor device, string name="")
         {
             this.InputLayer = input;
             this.HiddenLayers = hiddenLayers;
@@ -36,11 +36,11 @@ namespace UnityCNTK
             var temp = input.Build("NetworkInput");
             for (int i = 0; i < hiddenLayers.Length; ++i)
             {
-                temp = hiddenLayers[i].Build(temp, device, "Hidden." + i);
+                temp = hiddenLayers[i].Build(temp, device, name+".Hidden." + i);
                 ParameterNames.AddRange(hiddenLayers[i].ParameterNames);
             }
-
-            temp = OutputLayer.Build(temp, device, "NetworkOutput");
+            
+            temp = OutputLayer.Build(temp, device, name + ".NetworkOutput");
             ParameterNames.AddRange(OutputLayer.ParameterNames);
 
         }
@@ -80,6 +80,17 @@ namespace UnityCNTK
             outputVar.ToFunction().Evaluate(inputDataMap, outputDataMap, Device);
 
             return outputDataMap[outputVar].GetDenseData<float>(outputVar)[0];
+        }
+
+        public byte[] Save()
+        {
+            return CNTKFunction.Save();
+        }
+
+        public void Restore(byte[] data)
+        {
+            Function f = Function.Load(data, Device);
+            CNTKFunction.RestoreParametersByName(f);
         }
 
     }

@@ -6,10 +6,12 @@ using UnityEngine;
 using UnityCNTK;
 using CNTK;
 using UnityEngine.UI;
+using System.IO;
 
 public class Ball3DRunner : MonoBehaviour {
     public Text scoreUI;
     public Ball3DEnviroment environment;
+    public string saveDataPath;
     public float learningRate = 0.001f;
     protected PPOModel model;
     protected TrainerPPOSimple trainer;
@@ -35,13 +37,18 @@ public class Ball3DRunner : MonoBehaviour {
         if (environment.is3D)
         {
             network = new PPONetworkContinuousSimple(8, 2, 5, 64, DeviceDescriptor.CPUDevice, 0.01f);
+            model = new PPOModel(network);
+            trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate), 10000, 200);
+            trainer.ClipEpsilon = 0.1f;
         }
         else
         {
             network = new PPONetworkContinuousSimple(5, 1, 5, 64, DeviceDescriptor.CPUDevice, 0.01f);
+            model = new PPOModel(network);
+            trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate), 10000, 200);
         }
-        model = new PPOModel(network);
-        trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate), 10000, 200);
+        
+        
 
         //test
         //trainer.RewardDiscountFactor = 0.5f;
@@ -56,10 +63,10 @@ public class Ball3DRunner : MonoBehaviour {
         trainer.SetLearningRate(learningRate);
     }
 
+
     private void FixedUpdate()
     {
         RunStep();
-        //RunTest();
     }
 
 
@@ -97,4 +104,14 @@ public class Ball3DRunner : MonoBehaviour {
         }
     }
     
+    public void Save()
+    {
+        var data = model.Save();
+        File.WriteAllBytes(saveDataPath, data);
+    }
+    public void Load()
+    {
+        var bytes = File.ReadAllBytes(saveDataPath);
+        model.Restore(bytes);
+    }
 }
