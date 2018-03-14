@@ -1,31 +1,28 @@
 
-Adapted from https://github.com/aiunderstand/unity-cntk/blob/master/README.md.
+# AI and Deep learning tools for Unity using CNTK
 
+## Content 
+This rep contains some useful deep learning related tools implemented primarily using CNTK C# library.
+Current contents:
+- Helper functions to build/train neural network layers.
+  - Layers definitions
+  - Simple Sequential neural network
+  - cGAN
+- Universal Style Transfer
+- Reinforcement Learning
+  - PPO
+  
+## Platform and Installation
+Current it only works on windows platform. If you need to use GPU for NN, you also need a proper Nvidia graphic card.
+Installation steps:
+1. Download the repo(Unity project)
+2. Download the zip that includes necessary dlls https://drive.google.com/open?id=1VWEiXJw3PSdeXfBrimPevdCWdbUyHd_0
+3. Put the dlls in correct places. (Adapted from https://github.com/aiunderstand/unity-cntk/blob/master/README.md.)
+  - Copy those files/folders into any Plugins folder under yourproject/Assets.
+    - Cntk.Core.Managed-2.4.dll
+    - MathNet.Numerics.dll
+    - MathNet.Numerics.MKL.dll
+    - System.Drawing.dll
+    - Accord folder
+  - Copy other dlls and put them DIRECTLY under yourproject folder, or another place that Windows can find those dlls.
 
-1) Download the released version from - CNTK GPU 2.3 https://cntk.ai/dlwg-2.3.html (or see https://github.com/Microsoft/CNTK/releases for latest version)
-
-2) Copy the Cntk.Core.Managed-VERSION.dll to you Assets folder. Recommanded somewhere under Plugins folder.
-
-2) Copy the following DLL's to where the system can find them but not in the Assets folder. Rocommanded in the project folder.
-
-[some others might be needed as well. Just add new dlls based on the error message from Unity if you encounter any.]
-
-
-
-(see https://github.com/Microsoft/CNTK/wiki/CNTK-Library-Evaluation-on-Windows#using-the-cntk-library-managed-api 
-and http://stackoverflow.com/questions/36527985/dllnotfoundexception-in-while-building-desktop-unity-application-using-artoolkit)
-
-  - Cntk.Core-VERSION.dll (eg. Cntk.Core-2.3.dll)
-  - Cntk.Math-VERSION.dll
-  - Cntk.Core.CSBinding-VERSION.dll
-  - Cntk.Composite-VERSION.dll
-  - Cntk.PerformanceProfiler-VERSION.dll
-  - Cntk.Deserializers.TextFormat-VERSION.dll  
-  - libiomp5md.dll
-  - mklml.dll
-  - cublas64_80.dll
-  - cudart64_80.dll
-  - cudnn64_5.dll
-  - curand64_80.dll
-  - cusparse64_80.dll
-  - nvml.dll
