@@ -26,3 +26,5 @@ Installation steps:
     * Accord folder
 - Copy other dlls and put them DIRECTLY under yourproject folder, or another place that Windows can find those dlls.
 4. Done.
+
+Note that the file under Assets/UnityCNTK/Tools/UniversalStyleTransfer/Data/UST_combined.bytes is stored using Git LFS, be sure you are downloading it correct (It should be larger than 100MB)
