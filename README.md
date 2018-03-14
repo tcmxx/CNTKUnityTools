@@ -28,3 +28,6 @@ Installation steps:
 4. Done.
 
 Note that the file Assets/UnityCNTK/Tools/UniversalStyleTransfer/Data/UST_combined.bytes uses Git LFS, be sure you download it correctly (It should be larger than 100MB)
+
+## Documentation
+Go to [Wiki](https://github.com/tcmxx/CNTKUnityTools/wiki) to see detailed documentaion.
