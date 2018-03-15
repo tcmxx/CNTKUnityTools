@@ -10,8 +10,9 @@ namespace UnityCNTK
     public interface IRLEnvironment
     {
         void Step(float[] action);
-        float LastReward();
-        float[] CurrentState();
+        void Step(params float[][] actions);
+        float LastReward(int actor=0);
+        float[] CurrentState(int actor = 0);
         int CurrentStep();
         bool IsEnd();
         bool IsResolved();

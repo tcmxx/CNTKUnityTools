@@ -22,7 +22,7 @@ public class Ball3DEnviroment : MonoBehaviour, IRLEnvironment
     }
 
 
-    public float[] CurrentState()
+    public float[] CurrentState(int actor = 0)
     {
         if (is3D)
         {
@@ -61,7 +61,10 @@ public class Ball3DEnviroment : MonoBehaviour, IRLEnvironment
         return true;
     }
 
-
+    public void Step(params float[][] act)
+    {
+        Step(act[0]);
+    }
     public void Step(float[] act)
     {
         reward = 0;
@@ -152,7 +155,7 @@ public class Ball3DEnviroment : MonoBehaviour, IRLEnvironment
     }
 
 
-    public float LastReward()
+    public float LastReward(int actor = 0)
     {
         return reward;
     }
