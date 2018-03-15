@@ -18,13 +18,13 @@ Installation steps:
 1. Download the repo(Unity project)
 2. Download the zip that includes necessary dlls https://drive.google.com/open?id=1VWEiXJw3PSdeXfBrimPevdCWdbUyHd_0
 3. Put the dlls in correct places: (Adapted from https://github.com/aiunderstand/unity-cntk/blob/master/README.md.)
-- Put those files/folders into any Plugins folder under yourproject/Assets.
+- Put those files/folders into any Plugins folder under /DeepLearningToolsForUnity/Assets.
     * Cntk.Core.Managed-2.4.dll
     * MathNet.Numerics.dll
     * MathNet.Numerics.MKL.dll
     * System.Drawing.dll
     * Accord folder
-- Put other dlls and put them DIRECTLY under yourproject folder, or another place where Windows can find those dlls.
+- Copy the other dlls(not folders), and put them DIRECTLY under /DeepLearningToolsForUnity folder, or another place where Windows can find those dlls.
 4. Done.
 
 Note that the file Assets/UnityCNTK/Tools/UniversalStyleTransfer/Data/UST_combined.bytes uses Git LFS, be sure you download it correctly (It should be larger than 100MB)
