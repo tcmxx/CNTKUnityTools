@@ -9,6 +9,10 @@ using UnityEngine;
 
 namespace UnityCNTK
 {
+    /// <summary>
+    /// Helper to transfer all textures that is used in the same.
+    /// Not finished yet.
+    /// </summary>
     [ExecuteInEditMode]
     public class StyleTransferBatchHelper : MonoBehaviour
     {

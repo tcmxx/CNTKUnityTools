@@ -24,6 +24,11 @@ Universal Style Transfer does the encoding-whitening/coloring-decoding multiple 
 ![style transfer pipeline](https://github.com/tcmxx/CNTKUnityTools/blob/master/Docs/Images/UST-pipeline.png)
 
 ## Usage:
+### Unity Editor Tool
+In Unity Editor menu go to Window/UnityDeepLearningTools/StyleTransferTool
+
+### C# API
+
 ```csharp
 //create the model. the styleTransferModelData.bytes is the binary files provided that contains all needed pretrained data of the network.
 var styleTransferModel = new UniversalStyleTransferModel(CNTK.DeviceDescriptor.GPUDevice(0), styleTransferModelData.bytes);
