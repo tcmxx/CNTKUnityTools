@@ -123,7 +123,7 @@ namespace UnityCNTK
                 TextureScale.Bilinear(tempAlpha, colorSourceTexture.width, colorSourceTexture.height);
             }
 
-            var result = new Texture2D(colorSourceTexture.height, colorSourceTexture.width);
+            var result = new Texture2D(colorSourceTexture.width, colorSourceTexture.height);
 
             var originPixels = colorSourceTexture.GetPixels();
             var alphaPixels = tempAlpha.GetPixels();
