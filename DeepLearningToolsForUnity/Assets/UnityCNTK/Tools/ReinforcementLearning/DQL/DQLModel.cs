@@ -23,10 +23,6 @@ namespace UnityCNTK
     }
 
 
-    /// <summary>
-    /// PPO network similiar to one of Unity ML's python implementation
-    /// https://github.com/Unity-Technologies/ml-agents
-    /// </summary>
     public class QNetworkSimple : QNetwork
     {
         public override int StateSize { get; protected set; }
@@ -36,9 +32,7 @@ namespace UnityCNTK
 
         //actor outputs
         public override Variable OutputQs { get; protected set; }
-
-        protected SequentialNetworkDense qNetwork;
-
+        
         public override DeviceDescriptor Device { get; protected set; }
         public QNetworkSimple(int stateSize, int actionSize, int numLayers, int hiddenSize, DeviceDescriptor device, float initialWeightScale = 0.01f)
         {
@@ -48,11 +42,22 @@ namespace UnityCNTK
 
             //create actor network part
             var inputA = new InputLayerDense(stateSize);
-            var outputA = new OutputLayerDense(actionSize, ActivationFunction.None, OutputLayerDense.LossFunction.None);
+            var outputA = new OutputLayerDense(hiddenSize, ActivationFunction.None, OutputLayerDense.LossFunction.None);
+            outputA.HasBias = false;
             outputA.InitialWeightScale = initialWeightScale;
-            qNetwork = new SequentialNetworkDense(inputA, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, NormalizationMethod.None, 0, initialWeightScale, ActivationFunction.Relu), outputA, device);
+            SequentialNetworkDense qNetwork = new SequentialNetworkDense(inputA, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, false, NormalizationMethod.None, 0, initialWeightScale, ActivationFunction.Relu), outputA, device);
+
+            //seperate the advantage and value part. It is said to be better
+            var midStream = outputA.GetOutputVariable();
+            var advantageStream = CNTKLib.Slice(midStream, AxisVector.Repeat(new Axis(0), 1), IntVector.Repeat(0, 1), IntVector.Repeat(hiddenSize / 2, 1));
+            var valueStream = CNTKLib.Slice(midStream, AxisVector.Repeat(new Axis(0), 1), IntVector.Repeat(hiddenSize / 2, 1), IntVector.Repeat(hiddenSize, 1));
+            var adv = Layers.Dense(advantageStream, actionSize, device, false, "QNetworkAdvantage", initialWeightScale);
+            var value = Layers.Dense(valueStream, 1, device, false, "QNetworkValue", initialWeightScale);
+
             InputState = inputA.InputVariable;
-            OutputQs = outputA.GetOutputVariable();
+            //OutputQs = outputA.GetOutputVariable();
+            OutputQs = value.Output+CNTKLib.Minus(adv, CNTKLib.ReduceMean(adv, Axis.AllStaticAxes())).Output;
+
         }
 
     }
@@ -77,6 +82,9 @@ namespace UnityCNTK
         public Variable OutputQs { get { return Network.OutputQs; } }
         public Variable OutputMaxQ { get; protected set; }
 
+        //test
+        Variable outputTargetQ;
+
         public Function CNTKFunction { get; protected set; }
 
         //public Variable testOutputProb;
@@ -85,12 +93,14 @@ namespace UnityCNTK
         {
             Network = network;
 
-            InputOldAction = CNTKLib.InputVariable(new int[] { Network.ActionSize }, DataType.Float);
+            InputOldAction = CNTKLib.InputVariable(new int[] { 1 }, DataType.Float);
 
             InputTargetQ = CNTKLib.InputVariable(new int[] { 1 }, DataType.Float);
 
             var oneHotOldAction = CNTKLib.OneHotOp(InputOldAction, (uint)ActionSize, false, new Axis(0));
-            OutputLoss = CNTKLib.SquaredError(CNTKLib.ReduceSum(CNTKLib.ElementTimes(OutputQs, oneHotOldAction), Axis.AllStaticAxes()),InputTargetQ);
+            outputTargetQ = CNTKLib.ReduceSum(CNTKLib.ElementTimes(OutputQs, oneHotOldAction), Axis.AllStaticAxes());
+            //OutputLoss = CNTKLib.Square(CNTKLib.Minus(outputTargetQ, InputTargetQ),"Loss");
+            OutputLoss = Layers.HuberLoss(outputTargetQ, InputTargetQ, Device);
 
             OutputAction = CNTKLib.Argmax(OutputQs, new Axis(0));
             OutputMaxQ = CNTKLib.ReduceMax(OutputQs, new Axis(0));
@@ -100,13 +110,13 @@ namespace UnityCNTK
 
         public byte[] Save()
         {
-            return OutputLoss.ToFunction().Save();
+            return CNTKFunction.Save();
         }
 
         public void Restore(byte[] data)
         {
             Function f = Function.Load(data, Device);
-            OutputLoss.ToFunction().RestoreParametersByName(f);
+            CNTKFunction.RestoreParametersByName(f);
         }
 
 
@@ -117,17 +127,23 @@ namespace UnityCNTK
 
             Value inputStatedata = Value.CreateBatch(Network.InputState.Shape, state, Network.Device, true);
             inputDataMap.Add(Network.InputState, inputStatedata);
+            //test
+            //inputDataMap.Add(InputOldAction, Value.CreateBatch(new int[] { 1 }, new float[] { 2 }, Network.Device, true));
+
 
             //output datamaps
             var outputDataMap = new Dictionary<Variable, Value>();
             outputDataMap.Add(OutputMaxQ, null);
             outputDataMap.Add(OutputAction, null);
+            //outputDataMap.Add(OutputQs, null);//test
+            //outputDataMap.Add(outputTargetQ, null);//test
 
             CNTKFunction.Evaluate(inputDataMap, outputDataMap, Device);
 
             var maxQ = outputDataMap[OutputMaxQ].GetDenseData<float>(OutputMaxQ);
             var action = outputDataMap[OutputAction].GetDenseData<float>(OutputAction);
-
+            //var Qs = outputDataMap[OutputQs].GetDenseData<float>(OutputQs);//test
+            //var tarQ = outputDataMap[outputTargetQ].GetDenseData<float>(outputTargetQ);//test
             int batchSize = maxQ.Count;
 
             int[] actions = new int[batchSize];

@@ -8,10 +8,10 @@ using CNTK;
 using UnityEngine.UI;
 using System.IO;
 
-public class Ball3DRunner : MonoBehaviour {
+public class PongPPORunner : MonoBehaviour {
     public Text scoreUI;
-    public Ball3DEnviroment environment;
-    public string saveDataPath;
+    public PongEnvironment environment;
+    public string saveDataPath = "PongPPO.bytes";
     public float learningRate = 0.001f;
     protected PPOModel model;
     protected TrainerPPOSimple trainer;
@@ -22,53 +22,39 @@ public class Ball3DRunner : MonoBehaviour {
     public int episodeToRunForEachTrain = 30;
     public int iterationForEachTrain = 50;
     public int minibatch = 32;
-
-    [Range(0,100)]
-    public float timeScale;
     public bool training = true;
+    [Range(0, 100)]
+    public float timeScale;
 
     protected AutoAverage loss;
     protected AutoAverage episodePointAve;
     protected float episodePoint;
 
     // Use this for initialization
-    void Start () {
-        PPONetworkContinuousSimple network;
-        if (environment.is3D)
-        {
-            network = new PPONetworkContinuousSimple(8, 2, 5, 64, DeviceDescriptor.CPUDevice, 0.01f);
-            model = new PPOModel(network);
-            trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate),1, 10000, 200);
-            trainer.ClipEpsilon = 0.1f;
-        }
-        else
-        {
-            network = new PPONetworkContinuousSimple(5, 1, 5, 64, DeviceDescriptor.CPUDevice, 0.01f);
-            model = new PPOModel(network);
-            trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate),1, 10000, 200);
-        }
-        
-        
+    void Start()
+    {
+        var network = new PPONetworkDiscreteSimple(6, 3, 4, 64, DeviceDescriptor.CPUDevice, 0.01f);
+        model = new PPOModel(network);
+        trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate),1, 50000, 2000);
 
         //test
         //trainer.RewardDiscountFactor = 0.5f;
 
         loss = new AutoAverage(iterationForEachTrain);
-        episodePointAve = new AutoAverage(episodeToRunForEachTrain); 
+        episodePointAve = new AutoAverage(episodeToRunForEachTrain);
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update()
+    {
         Time.timeScale = timeScale;
         trainer.SetLearningRate(learningRate);
     }
-
 
     private void FixedUpdate()
     {
         RunStep();
     }
-
 
     protected void RunStep()
     {
@@ -98,12 +84,9 @@ public class Ball3DRunner : MonoBehaviour {
                 trainer.ClearData();
                 episodesThisTrain = 0;
             }
-        }else if (environment.IsEnd())
-        {
-            environment.Reset();
+
         }
     }
-    
     public void Save()
     {
         var data = model.Save();

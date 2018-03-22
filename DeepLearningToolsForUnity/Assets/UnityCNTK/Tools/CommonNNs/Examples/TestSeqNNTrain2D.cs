@@ -45,7 +45,7 @@ public class TestSeqNNTrain2D : MonoBehaviour {
         //outputLayer = new OutputLayerDenseBayesian(1);
         outputLayer = new OutputLayerDense(1, ActivationFunction.None, OutputLayerDense.LossFunction.Square);
 
-        network = new SequentialNetworkDense(input, LayerDefineHelper.DenseLayers(10,5,NormalizationMethod.None), outputLayer, DeviceDescriptor.CPUDevice);
+        network = new SequentialNetworkDense(input, LayerDefineHelper.DenseLayers(10,5,true,NormalizationMethod.None), outputLayer, DeviceDescriptor.CPUDevice);
         //network = new SequentialNetworkDense(input, LayerDefineHelper.ResNodeLayers(10, 5), outputLayer, DeviceDescriptor.CPUDevice);
 
         trainer = new TrainerSimpleNN(network, LearnerDefs.AdamLearner(lr),DeviceDescriptor.CPUDevice);

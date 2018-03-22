@@ -34,7 +34,7 @@ public class PoleRunner : MonoBehaviour {
     {
         var network = new PPONetworkContinuousSimple(2, 1, 4, 64, DeviceDescriptor.GPUDevice(0),0.01f);
         model = new PPOModel(network);
-        trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate), 10000, 500);
+        trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate), 1,10000, 500);
 
         //test
         //trainer.RewardDiscountFactor = 0.5f;
@@ -69,7 +69,7 @@ public class PoleRunner : MonoBehaviour {
             episodePointAve.AddValue(episodePoint);
             if (episodePointAve.JustUpdated)
             {
-                scoreUI.text = "Average points:" + episodePointAve.Average;
+                scoreUI.text = "(PPO, Continuous) Average Reward:" + episodePointAve.Average;
             }
             episodePoint = 0;
 

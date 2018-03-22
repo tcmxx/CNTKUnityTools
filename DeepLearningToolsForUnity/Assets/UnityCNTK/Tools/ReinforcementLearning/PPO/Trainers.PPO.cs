@@ -9,7 +9,7 @@ namespace UnityCNTK
 
     public interface IRLEnvironment
     {
-        void Step(float[] action);
+        //void Step(float[] action);  //TODO remove this and replace this with void Step(params float[][] actions);
         void Step(params float[][] actions);
         float LastReward(int actor=0);
         float[] CurrentState(int actor = 0);
@@ -27,29 +27,28 @@ namespace UnityCNTK
         public PPOModel Model { get; protected set; }
        
         public int MaxStepHorizon { get; set; }
-
-
+        
         public float RewardDiscountFactor { get; set; } = 0.99f;
         public float RewardGAEFactor { get; set; } = 0.95f;
         public float ValueLossWeight { get; set; } = 1f;
         public float EntroyLossWeight { get; set; } = 0.0f;
         public float ClipEpsilon { get; set; } = 0.2f;
 
+        public int NumberOfActor { get; private set; } = 1;
+
+
+        protected Dictionary<int, List<float>> statesEpisodeHistory;
+        protected Dictionary<int, List<float>> rewardsEpisodeHistory;
+        protected Dictionary<int, List<float>> actionsEpisodeHistory;
+        protected Dictionary<int, List<float>> actionprobsEpisodeHistory;
+        protected Dictionary<int, List<float>> valuesEpisodeHistory;
 
 
 
-        protected List<float> statesEpisodeHistory;
-        protected List<float> rewardsEpisodeHistory;
-        protected List<float> actionsEpisodeHistory;
-        protected List<float> actionprobsEpisodeHistory;
-        protected List<float> valuesEpisodeHistory;
-
-
-
-        public float[] LastState { get; private set; }
-        public float[] LastAction { get; protected set; }
-        public float[] LastActionProbs { get; protected set; }
-        public float LastValue { get; protected set; }
+        public Dictionary<int, float[]> LastState { get; private set; }
+        public Dictionary<int, float[]> LastAction { get; protected set; }
+        public Dictionary<int, float[]> LastActionProbs { get; protected set; }
+        public Dictionary<int, float> LastValue { get; protected set; }
 
 
         public float LastLoss { get; protected set; }
@@ -59,16 +58,31 @@ namespace UnityCNTK
 
         protected List<Learner> learners;
 
-        public TrainerPPOSimple(PPOModel model, LearnerDefs.LearnerDef learner, int bufferSize = 2048, int maxStepHorizon = 2048)
+        public TrainerPPOSimple(PPOModel model, LearnerDefs.LearnerDef learner, int numberOfActor = 1, int bufferSize = 2048, int maxStepHorizon = 2048)
         {
             Model = model;
             MaxStepHorizon = maxStepHorizon;
+            NumberOfActor = numberOfActor;
 
-            statesEpisodeHistory = new List<float>();
-            rewardsEpisodeHistory = new List<float>();
-            actionsEpisodeHistory = new List<float>();
-            valuesEpisodeHistory = new List<float>();
-            actionprobsEpisodeHistory = new List<float>();
+            statesEpisodeHistory = new Dictionary<int, List<float>>();
+            rewardsEpisodeHistory = new Dictionary<int, List<float>>();
+            actionsEpisodeHistory = new Dictionary<int, List<float>>();
+            valuesEpisodeHistory = new Dictionary<int, List<float>>();
+            actionprobsEpisodeHistory = new Dictionary<int, List<float>>();
+            for (int i = 0; i < numberOfActor; ++i)
+            {
+                statesEpisodeHistory[i] = new List<float>();
+                rewardsEpisodeHistory[i] = new List<float>();
+                actionsEpisodeHistory[i] = new List<float>();
+                valuesEpisodeHistory[i] = new List<float>();
+                actionprobsEpisodeHistory[i] = new List<float>();
+            }
+
+
+            LastState = new Dictionary<int, float[]>();
+            LastAction = new Dictionary<int, float[]>();
+            LastActionProbs = new Dictionary<int, float[]>();
+            LastValue = new Dictionary<int, float>();
 
             dataBuffer = new DataBuffer(bufferSize,
                 new DataBuffer.DataInfo("State", DataBuffer.DataType.Float, Model.StateSize),
@@ -93,25 +107,48 @@ namespace UnityCNTK
         /// <param name="environment"></param>
         public void Step(IRLEnvironment environment)
         {
-            float[] action = null;
-            float[] actionProbs = null;
-            LastState = environment.CurrentState().CopyToArray();
+            float[][] actions = new float[NumberOfActor][];
+            
+
+            float[] statesAll = new float[NumberOfActor * Model.StateSize];
+            for (int i = 0; i < NumberOfActor; ++i)
+            {
+                var states = environment.CurrentState(i).CopyToArray();
+                LastState[i] = states;
+                Array.Copy(states, 0, statesAll, i * Model.StateSize, Model.StateSize);
+            }
 
             if (Model.IsActionContinuous)
             {
-                action = Model.EvaluateActionContinuous(LastState, out actionProbs);
+                float[] actionProbs = null;
+                float[] tempAction = Model.EvaluateActionContinuous(statesAll, out actionProbs);
+                for (int i = 0; i < NumberOfActor; ++i)
+                {
+                    actions[i] = new float[] { Model .ActionSize};
+                    Array.Copy(tempAction, i* Model.ActionSize, actions[i], 0, Model.ActionSize);
+                    LastAction[i] = actions[i];
+                    LastActionProbs[i] = new float[] { Model.ActionSize };
+                    Array.Copy(actionProbs, i * Model.ActionSize, LastActionProbs[i], 0, Model.ActionSize);
+                }
+                
             }
             else
             {
-                int[] tempAction = Model.EvaluateActionDiscrete(LastState, out actionProbs, true);
-                action = new float[1] { tempAction[0] };
+                float[] actionProbs = null;
+                int[] tempAction = Model.EvaluateActionDiscrete(statesAll, out actionProbs, true);
+                for (int i = 0; i < NumberOfActor; ++i)
+                {
+                    actions[i] = new float[] { tempAction[i] };
+                    LastAction[i] = actions[i];
+                    LastActionProbs[i] = new float[] { actionProbs[i] };
+                }
             }
-            LastAction = action;
-            LastActionProbs = actionProbs;
+            for (int i = 0; i < NumberOfActor; ++i)
+            {
+                LastValue[i] = Model.EvaluateValue(statesAll)[i];
+            }
 
-            LastValue = Model.EvaluateValue(LastState)[0];
-
-            environment.Step(action);
+            environment.Step(actions);
         }
 
         /// <summary>
@@ -122,16 +159,32 @@ namespace UnityCNTK
         {
             Debug.Assert(environment.IsResolved());
             bool isEnd = environment.IsEnd();
-            float reward = environment.LastReward();
 
-            AddHistory(LastState, reward, LastAction, LastActionProbs, LastValue);
+            for (int i = 0; i < NumberOfActor; ++i)
+            {
+                float reward = environment.LastReward();
+                AddHistory(LastState[i], reward, LastAction[i], LastActionProbs[i], LastValue[i], i);
+            }
+
             if (isEnd || environment.CurrentStep() >= MaxStepHorizon) {
-                float nextValue = 0;
+                float[] nextValues = new float[NumberOfActor];
                 if (!isEnd)
                 {
-                    nextValue = Model.EvaluateValue(environment.CurrentState())[0];
+                    nextValues = Model.EvaluateValue(environment.CurrentState());
                 }
-                ProcessEpisodeHistory(nextValue);
+                else
+                {
+                    for (int i = 0; i < NumberOfActor; ++i)
+                    {
+                        nextValues[i] = 0;
+                    }
+                }
+
+                for (int i = 0; i < NumberOfActor; ++i)
+                {
+                    ProcessEpisodeHistory(nextValues[i],i);
+                }
+                
                 return true;
             }
             return false;
@@ -159,11 +212,12 @@ namespace UnityCNTK
                 float[] advantages = (float[])samples["Advantage"];
 
                 int batchCount = targetValues.Length / batchsize;
-                for(int j =0;j < batchCount; ++j)
+                int actionUnitSize = (Model.IsActionContinuous ? Model.ActionSize : 1);
+                for (int j =0;j < batchCount; ++j)
                 {
                     TrainBatch(SubArray(states,j*batchsize*Model.StateSize, batchsize * Model.StateSize), 
-                        SubArray(actions, j * batchsize * Model.ActionSize, batchsize * Model.ActionSize),
-                        SubArray(actionProbs, j * batchsize * Model.ActionSize, batchsize * Model.ActionSize),
+                        SubArray(actions, j * batchsize * actionUnitSize, batchsize * actionUnitSize),
+                        SubArray(actionProbs, j * batchsize * actionUnitSize, batchsize * actionUnitSize),
                         SubArray(targetValues, j * batchsize, batchsize),
                         SubArray(advantages, j * batchsize, batchsize));
                     lossEpoch += LastLoss;
@@ -226,13 +280,14 @@ namespace UnityCNTK
         /// <summary>
         /// calcualte the discounted advantages for the current sequence of data, and add them to the databuffer
         /// </summary>
-        protected void ProcessEpisodeHistory(float nextValue)
+        protected void ProcessEpisodeHistory(float nextValue, int actorNum)
         {
-            var advantages = RLUtils.GeneralAdvantageEst(rewardsEpisodeHistory.ToArray(), valuesEpisodeHistory.ToArray(), RewardDiscountFactor, RewardGAEFactor, nextValue);
+            var advantages = RLUtils.GeneralAdvantageEst(rewardsEpisodeHistory[actorNum].ToArray(), 
+                valuesEpisodeHistory[actorNum].ToArray(), RewardDiscountFactor, RewardGAEFactor, nextValue);
             float[] targetValues = new float[advantages.Length];
             for(int i = 0; i < targetValues.Length; ++i)
             {
-                targetValues[i] = advantages[i] + valuesEpisodeHistory[i];
+                targetValues[i] = advantages[i] + valuesEpisodeHistory[actorNum][i];
 
                 //test 
                 //advantages[i] = 1;
@@ -241,29 +296,29 @@ namespace UnityCNTK
             //targetValues = RLUtils.DiscountedRewards(rewardsEpisodeHistory.ToArray(), RewardDiscountFactor);
 
 
-            dataBuffer.AddData(Tuple.Create<string, Array>("State", statesEpisodeHistory.ToArray()),
-                Tuple.Create<string, Array>("Action", actionsEpisodeHistory.ToArray()),
-                Tuple.Create<string, Array>("ActionProb", actionprobsEpisodeHistory.ToArray()),
+            dataBuffer.AddData(Tuple.Create<string, Array>("State", statesEpisodeHistory[actorNum].ToArray()),
+                Tuple.Create<string, Array>("Action", actionsEpisodeHistory[actorNum].ToArray()),
+                Tuple.Create<string, Array>("ActionProb", actionprobsEpisodeHistory[actorNum].ToArray()),
                 Tuple.Create<string, Array>("TargetValue", targetValues),
                 Tuple.Create<string, Array>("Advantage", advantages)
                 );
 
-            statesEpisodeHistory.Clear();
-            rewardsEpisodeHistory.Clear();
-            actionsEpisodeHistory.Clear();
-            actionprobsEpisodeHistory.Clear();
-            valuesEpisodeHistory.Clear();
+            statesEpisodeHistory[actorNum].Clear();
+            rewardsEpisodeHistory[actorNum].Clear();
+            actionsEpisodeHistory[actorNum].Clear();
+            actionprobsEpisodeHistory[actorNum].Clear();
+            valuesEpisodeHistory[actorNum].Clear();
         }
 
 
 
-        protected void AddHistory(float[] state, float reward, float[] action, float[] actionProbs, float value)
+        protected void AddHistory(float[] state, float reward, float[] action, float[] actionProbs, float value, int actorNum)
         {
-            statesEpisodeHistory.AddRange(state);
-            rewardsEpisodeHistory.Add(reward);
-            actionsEpisodeHistory.AddRange(action);
-            actionprobsEpisodeHistory.AddRange(actionProbs);
-            valuesEpisodeHistory.Add(value);
+            statesEpisodeHistory[actorNum].AddRange(state);
+            rewardsEpisodeHistory[actorNum].Add(reward);
+            actionsEpisodeHistory[actorNum].AddRange(action);
+            actionprobsEpisodeHistory[actorNum].AddRange(actionProbs);
+            valuesEpisodeHistory[actorNum].Add(value);
             
         }
 
