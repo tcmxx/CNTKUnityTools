@@ -200,6 +200,16 @@ namespace UnityCNTK
         }
 
 
+        public static Function HuberLoss(Variable input1, Variable input2, DeviceDescriptor device)
+        {
+            var error = CNTKLib.Minus(input1, input2);
+            var square = CNTKLib.ElementDivide(CNTKLib.Square(error), Constant.Scalar(2.0f, device));
+            var linear = CNTKLib.Minus(CNTKLib.Abs(error),Constant.Scalar(0.5f, device));
+            var useLinear = CNTKLib.Cast(CNTKLib.GreaterEqual(linear, Constant.Scalar(0.5f, device)),DataType.Float);
+            return CNTKLib.ElementTimes(linear, useLinear).Output + CNTKLib.ElementTimes(square, CNTKLib.Minus(Constant.Scalar(1.0f,device), useLinear)).Output;
+
+        }
+
     }
 
 

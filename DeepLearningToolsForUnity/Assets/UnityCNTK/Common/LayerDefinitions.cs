@@ -272,6 +272,8 @@ namespace UnityCNTK.LayerDefinitions
         private int hiddenSize;
         public float DropoutRate { get { return dropoutRate; } set { Debug.Assert(!IsBuilt, "Can not change after built."); dropoutRate = Mathf.Clamp01(value); } }
         private float dropoutRate;
+        public bool HasBias { get { return hasBias; } set { Debug.Assert(!IsBuilt, "Can not change after built."); hasBias = value; } }
+        private bool hasBias;
         public ActivationFunction Activation { get { return activation; } set { Debug.Assert(!IsBuilt, "Can not change after built."); activation = value ; } }
         private ActivationFunction activation;
 
@@ -336,7 +338,7 @@ namespace UnityCNTK.LayerDefinitions
 
         protected override Function BuildNetwork(Variable input, DeviceDescriptor device, string name) {
            
-            var c1 = UnityCNTK.Layers.Dense(input, HiddenSize, device, true, name + ".Dense", InitialWeightScale);
+            var c1 = UnityCNTK.Layers.Dense(input, HiddenSize, device, HasBias, name + ".Dense", InitialWeightScale);
             if (normalizationMethod == NormalizationMethod.BatchNormalizatoin)
             {
                 c1 = Layers.BatchNormalization(c1, InitialNormalizationBias, InitialNormalizationScale, BNTimeConst, BNSpatial, device, name + ".BN");
@@ -403,6 +405,8 @@ namespace UnityCNTK.LayerDefinitions
         private int hiddenSize;
         public float InitialWeightScale { get { return initialWeightScale; } set { Debug.Assert(!IsBuilt, "Can not change after built."); initialWeightScale = value; } }
         protected float initialWeightScale = 7.07f;
+        public bool HasBias { get { return hasBias; } set { Debug.Assert(!IsBuilt, "Can not change after built."); hasBias = value; } }
+        private bool hasBias = true;
         public LossFunction Loss { get { return loss; } set { Debug.Assert(!IsBuilt, "Can not change after built."); loss = value; } }
         private LossFunction loss;
         public ActivationFunction Activation { get { return activation; } set { Debug.Assert(!IsBuilt, "Can not change after built."); activation = value; } }
@@ -431,7 +435,7 @@ namespace UnityCNTK.LayerDefinitions
 
         protected override Function BuildNetwork(Variable input, DeviceDescriptor device, string name)
         {
-            var c1 = UnityCNTK.Layers.Dense(input, HiddenSize, device, true, name + ".Dense", InitialWeightScale);
+            var c1 = UnityCNTK.Layers.Dense(input, HiddenSize, device, HasBias, name + ".Dense", InitialWeightScale);
 
             if (Activation == ActivationFunction.Softmax)
             {

@@ -55,7 +55,7 @@ var model = new PPOModel(network);
 
 4. Create the PPO trainer. The PPO `TrainerPPOSimple` is a helper class to train the PPO network. It helps step the environment and record the reward,states etc, and calculate the discounted advantage after each episode. 
 ```csharp
-trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate), bufferSize, maxStepHorizon);
+trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate), numberOfActor, bufferSize, maxStepHorizon);
 ```
 - The `buffersize` is the capacity of the buffer that records the data used in the trainer. It should be at least maxPossibleStepOfEachGame*numOfGamesToRunBeforeEachTrain. 
 - The `maxStepHorizon` is the max steps of each game before calculate the discounted advantage. One game is to be end when this is reached.

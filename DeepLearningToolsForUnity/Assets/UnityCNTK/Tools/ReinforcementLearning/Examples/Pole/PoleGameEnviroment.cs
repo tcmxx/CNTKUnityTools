@@ -33,7 +33,7 @@ public class PoleGameEnviroment : MonoBehaviour, IRLEnvironment
         poleObjectRef.transform.rotation = Quaternion.Euler(0, 0, angleR * Mathf.Rad2Deg + 180);
     }
 
-    public float[] CurrentState()
+    public float[] CurrentState(int actor = 0)
     {
             var state = new float[2];
             state[0] = velR;
@@ -50,7 +50,10 @@ public class PoleGameEnviroment : MonoBehaviour, IRLEnvironment
         return true;
     }
 
-
+    public void Step(params float[][] act)
+    {
+        Step(act[0]);
+    }
     public void Step(float[] act)
     {
         reward = 0;
@@ -86,7 +89,7 @@ public class PoleGameEnviroment : MonoBehaviour, IRLEnvironment
     }
 
 
-    public float LastReward()
+    public float LastReward(int actor = 0)
     {
         return reward;
     }
