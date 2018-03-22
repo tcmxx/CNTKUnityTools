@@ -9,7 +9,6 @@ using UnityEngine.UI;
 using System.IO;
 
 public class PongPPORunner : MonoBehaviour {
-    public Text scoreUI;
     public PongEnvironment environment;
     public string saveDataPath = "PongPPO.bytes";
     public float learningRate = 0.001f;
@@ -26,8 +25,15 @@ public class PongPPORunner : MonoBehaviour {
     [Range(0, 100)]
     public float timeScale;
 
+    public int Steps { get { return trainer.Steps; } }
+    [Header("info")]
+    public int currentEpisode = 0;
+    public int leftWin = 0;
+    public int rightWin = 0;
+
+    public AutoAverage winningRate50Left = new AutoAverage(50);
     protected AutoAverage loss;
-    protected AutoAverage episodePointAve;
+    public AutoAverage episodePointAve;
     protected float episodePoint;
 
     // Use this for initialization
@@ -65,13 +71,22 @@ public class PongPPORunner : MonoBehaviour {
         //reset if end
         if (reset && training)
         {
+            currentEpisode++;
+            if (environment.GameWinPlayer == 0)
+            {
+                leftWin++;
+                winningRate50Left.AddValue(1);
+            }
+            else
+            {
+                rightWin++;
+                winningRate50Left.AddValue(0);
+            }
+
+
             environment.Reset();
             episodesThisTrain++;
             episodePointAve.AddValue(episodePoint);
-            if (episodePointAve.JustUpdated)
-            {
-                scoreUI.text = "Average points:" + episodePointAve.Average;
-            }
             episodePoint = 0;
 
             if (episodesThisTrain >= episodeToRunForEachTrain)

@@ -170,7 +170,7 @@ namespace UnityCNTK
             public override Learner Create(IList<Parameter> parameters)
             {
 
-                return Learner.MomentumSGDLearner(parameters, new TrainingParameterScheduleDouble(lr), new TrainingParameterScheduleDouble(mom), false);
+                return Learner.MomentumSGDLearner(parameters, new TrainingParameterScheduleDouble(lr), new TrainingParameterScheduleDouble(mom), true);
             }
         }
 

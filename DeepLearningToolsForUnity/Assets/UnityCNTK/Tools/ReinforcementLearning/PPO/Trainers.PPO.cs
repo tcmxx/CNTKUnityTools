@@ -35,7 +35,7 @@ namespace UnityCNTK
         public float ClipEpsilon { get; set; } = 0.2f;
 
         public int NumberOfActor { get; private set; } = 1;
-
+        public int Steps { get; protected set; } = 0;
 
         protected Dictionary<int, List<float>> statesEpisodeHistory;
         protected Dictionary<int, List<float>> rewardsEpisodeHistory;
@@ -149,6 +149,7 @@ namespace UnityCNTK
             }
 
             environment.Step(actions);
+            Steps++;
         }
 
         /// <summary>

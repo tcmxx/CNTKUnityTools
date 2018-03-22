@@ -8,14 +8,14 @@ namespace UnityCNTK.LayerDefinitions
 
 
     public enum NormalizationMethod { None, LayerNormalization, BatchNormalizatoin }
-    public enum ActivationFunction
+    /*public enum ActivationFunction
     {
         None,
         Softmax,
         Sigmoid,
         Tanh,
         Relu
-    }
+    }*/
 
 
 
@@ -123,13 +123,22 @@ namespace UnityCNTK.LayerDefinitions
             p.SetValue(new NDArrayView(p.Shape, data, p.Value().Device));//this will has error if the data size does not fit the parameter shape
         }
         protected abstract Function BuildNetwork(Variable input, DeviceDescriptor device, string name);
+
+        /// <summary>
+        /// buildt the network without saving the informations so that we can use one layerdef to build multiple netowork. 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="device"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public abstract Function BuildNew(Variable input, DeviceDescriptor device, string name);
     }
 
 
     /// <summary>
     /// A resnet node definition
     /// </summary>
-    public class LayerResNodeDese : LayerDef
+    public class ResNodeDenseDef : LayerDef
     {
         //main parameters
         public NormalizationMethod NormalizationMethod { get { return normalizationMethod; } set { Debug.Assert(!IsBuilt, "Can not change after built."); normalizationMethod = value; } }
@@ -160,7 +169,7 @@ namespace UnityCNTK.LayerDefinitions
         /// <param name="size">hidden size</param>
         /// <param name="normalization">Which normalizatoin to use</param>
         /// <param name="dropoutRate">dropout rate</param>
-        public LayerResNodeDese(int size, NormalizationMethod normalization, float dropoutRate = 0)
+        public ResNodeDenseDef(int size, NormalizationMethod normalization, float dropoutRate = 0)
         {
             HiddenSize = size;
             NormalizationMethod = normalization;
@@ -203,7 +212,11 @@ namespace UnityCNTK.LayerDefinitions
                 return;
             SetParam(paramName, data);
         }
-
+        public override Function BuildNew(Variable input, DeviceDescriptor device, string name)
+        {
+            Debug.LogError("BuildNew not supported");
+            return null;
+        }
         protected override Function BuildNetwork(Variable input, DeviceDescriptor device, string name)
         {
 
@@ -263,7 +276,7 @@ namespace UnityCNTK.LayerDefinitions
 
 
     //a normal dense layer definition
-    public class LayerDense : LayerDef
+    public class LayerDenseDef : LayerDef
     {
         //main parameters
         public NormalizationMethod NormalizationMethod { get { return normalizationMethod; } set { Debug.Assert(!IsBuilt, "Can not change after built."); normalizationMethod = value; } }
@@ -274,8 +287,8 @@ namespace UnityCNTK.LayerDefinitions
         private float dropoutRate;
         public bool HasBias { get { return hasBias; } set { Debug.Assert(!IsBuilt, "Can not change after built."); hasBias = value; } }
         private bool hasBias;
-        public ActivationFunction Activation { get { return activation; } set { Debug.Assert(!IsBuilt, "Can not change after built."); activation = value ; } }
-        private ActivationFunction activation;
+        public LayerDef Activation { get { return activation; } set { Debug.Assert(!IsBuilt, "Can not change after built."); activation = value ; } }
+        private LayerDef activation;
 
         //some other parameters that can be set as well.
         public float InitialWeightScale { get { return initialWeightScale; } set { Debug.Assert(!IsBuilt, "Can not change after built."); initialWeightScale = value; } }
@@ -298,12 +311,13 @@ namespace UnityCNTK.LayerDefinitions
         /// <param name="size">hidden size</param>
         /// <param name="normalization">Which normalizatoin to use</param>
         /// <param name="dropoutRate">dropout rate</param>
-        public LayerDense(int size, NormalizationMethod normalization, ActivationFunction activationFunction = ActivationFunction.Relu, float dropoutRate = 0)
+        public LayerDenseDef(int size, NormalizationMethod normalization, LayerDef activationDef, float dropoutRate = 0)
         {
             HiddenSize = size;
             NormalizationMethod = normalization;
             DropoutRate = dropoutRate;
             ParameterNames = new List<string>();
+            Activation = activationDef;
         }
 
         public enum DenseParamType { Bias, Weight };
@@ -335,36 +349,26 @@ namespace UnityCNTK.LayerDefinitions
                 return;
             SetParam(paramName, data);
         }
-
+        public override Function BuildNew(Variable input, DeviceDescriptor device, string name)
+        {
+            Debug.LogError("BuildNew not supported");
+            return null;
+        }
         protected override Function BuildNetwork(Variable input, DeviceDescriptor device, string name) {
            
             var c1 = UnityCNTK.Layers.Dense(input, HiddenSize, device, HasBias, name + ".Dense", InitialWeightScale);
-            if (normalizationMethod == NormalizationMethod.BatchNormalizatoin)
+            if (NormalizationMethod == NormalizationMethod.BatchNormalizatoin)
             {
                 c1 = Layers.BatchNormalization(c1, InitialNormalizationBias, InitialNormalizationScale, BNTimeConst, BNSpatial, device, name + ".BN");
             }
-            else if (normalizationMethod == NormalizationMethod.LayerNormalization)
+            else if (NormalizationMethod == NormalizationMethod.LayerNormalization)
             {
                 c1 = Layers.LayerNormalization(c1, device, InitialNormalizationBias, InitialNormalizationScale, name + ".LN");
             }
 
-            if(Activation == ActivationFunction.Relu)
+            if(Activation != null)
             {
-                c1 = CNTKLib.ReLU(c1);
-            }else if(Activation == ActivationFunction.Sigmoid)
-            {
-                c1 = CNTKLib.Sigmoid(c1);
-            }
-            else if (Activation == ActivationFunction.Tanh)
-            {
-                c1 = CNTKLib.Tanh(c1);
-            }else if(Activation == ActivationFunction.None)
-            {
-
-            }
-            else
-            {
-                Debug.LogError("Activation function" + Activation + " is not supported");
+                c1 = Activation.BuildNew(c1,  Device, name+".Activation");
             }
 
 
@@ -409,8 +413,8 @@ namespace UnityCNTK.LayerDefinitions
         private bool hasBias = true;
         public LossFunction Loss { get { return loss; } set { Debug.Assert(!IsBuilt, "Can not change after built."); loss = value; } }
         private LossFunction loss;
-        public ActivationFunction Activation { get { return activation; } set { Debug.Assert(!IsBuilt, "Can not change after built."); activation = value; } }
-        protected ActivationFunction activation = ActivationFunction.None;
+        public LayerDef Activation { get { return activation; } set { Debug.Assert(!IsBuilt, "Can not change after built."); activation = value; } }
+        private LayerDef activation;
 
         protected Variable lossOutput;
         protected Variable resultOutput;
@@ -421,33 +425,32 @@ namespace UnityCNTK.LayerDefinitions
 
 
         public enum DenseParamType { Bias, Weight };
-        public OutputLayerDense(int outputNumber, ActivationFunction activationFunction, LossFunction lossFunction)  {
-            if (activationFunction != ActivationFunction.Softmax && lossFunction == LossFunction.CrossEntropy)
+        public OutputLayerDense(int outputNumber, LayerDef activationFunction, LossFunction lossFunction)  {
+            if (!(activationFunction is SoftmaxDef) && lossFunction == LossFunction.CrossEntropy)
             {
                 Debug.LogError("Cross Entropy only support softmax activation for now.");
-                activationFunction = ActivationFunction.Softmax;
+                activationFunction = new SoftmaxDef();
             }
             HiddenSize = outputNumber;
             Activation = activationFunction;
             Loss = lossFunction;
             ParameterNames = new List<string>();
         }
-
+        public override Function BuildNew(Variable input, DeviceDescriptor device, string name)
+        {
+            Debug.LogError("BuildNew not supported");
+            return null;
+        }
         protected override Function BuildNetwork(Variable input, DeviceDescriptor device, string name)
         {
             var c1 = UnityCNTK.Layers.Dense(input, HiddenSize, device, HasBias, name + ".Dense", InitialWeightScale);
 
-            if (Activation == ActivationFunction.Softmax)
+            if (Activation != null)
             {
-                resultOutput = CNTKLib.Softmax(c1, name + ".Output");
-            }else if (Activation == ActivationFunction.Sigmoid) {
-                resultOutput = CNTKLib.Sigmoid(c1, name + ".Output");
+                resultOutput = Activation.BuildNew(c1, Device, name + ".Activation");
             }
-            else if (Activation == ActivationFunction.Tanh)
+            else
             {
-                resultOutput = CNTKLib.Tanh(c1, name + ".Output");
-            }
-            else if(Activation == ActivationFunction.None) {
                 resultOutput = c1;
             }
 
@@ -535,7 +538,11 @@ namespace UnityCNTK.LayerDefinitions
             HiddenSize = outputNumber+1;
             ParameterNames = new List<string>();
         }
-
+        public override Function BuildNew(Variable input, DeviceDescriptor device, string name)
+        {
+            Debug.LogError("BuildNew not supported");
+            return null;
+        }
         protected override Function BuildNetwork(Variable input, DeviceDescriptor device, string name)
         {
             var c1 = UnityCNTK.Layers.Dense(input, HiddenSize, device, true, name + ".Dense", InitialWeightScale);

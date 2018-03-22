@@ -42,10 +42,10 @@ namespace UnityCNTK
 
             //create actor network part
             var inputA = new InputLayerDense(stateSize);
-            var outputA = new OutputLayerDense(hiddenSize, ActivationFunction.None, OutputLayerDense.LossFunction.None);
+            var outputA = new OutputLayerDense(hiddenSize,null, OutputLayerDense.LossFunction.None);
             outputA.HasBias = false;
             outputA.InitialWeightScale = initialWeightScale;
-            SequentialNetworkDense qNetwork = new SequentialNetworkDense(inputA, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, false, NormalizationMethod.None, 0, initialWeightScale, ActivationFunction.Relu), outputA, device);
+            SequentialNetworkDense qNetwork = new SequentialNetworkDense(inputA, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, false, NormalizationMethod.None, 0, initialWeightScale, new ReluDef()), outputA, device);
 
             //seperate the advantage and value part. It is said to be better
             var midStream = outputA.GetOutputVariable();

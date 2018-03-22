@@ -7,22 +7,22 @@ namespace UnityCNTK.LayerDefinitions
 {
     public static class LayerDefineHelper
     {
-        public static LayerResNodeDese[] ResNodeLayers(int numOfNodes, int hiddenSize, NormalizationMethod normalizatoin = NormalizationMethod.None,float dropout = 0.0f)
+        public static ResNodeDenseDef[] ResNodeLayers(int numOfNodes, int hiddenSize, NormalizationMethod normalizatoin = NormalizationMethod.None,float dropout = 0.0f)
         {
-            var result = new LayerResNodeDese[numOfNodes];
+            var result = new ResNodeDenseDef[numOfNodes];
             for(int i = 0; i < numOfNodes; ++i)
             {
-                result[i]=new LayerResNodeDese(hiddenSize, normalizatoin, dropout);
+                result[i]=new ResNodeDenseDef(hiddenSize, normalizatoin, dropout);
             }
             return result;
         }
 
-        public static LayerDense[] DenseLayers(int numOfLayers, int hiddenSize, bool hasBias = true, NormalizationMethod normalizatoin = NormalizationMethod.None, float dropout = 0.0f, float initialWeightScale = 0.1f, ActivationFunction activation = ActivationFunction.Relu)
+        public static LayerDenseDef[] DenseLayers(int numOfLayers, int hiddenSize, bool hasBias = true, NormalizationMethod normalizatoin = NormalizationMethod.None, float dropout = 0.0f, float initialWeightScale = 0.1f, LayerDef activation = null)
         {
-            var result = new LayerDense[numOfLayers];
+            var result = new LayerDenseDef[numOfLayers];
             for (int i = 0; i < numOfLayers; ++i)
             {
-                result[i] = new LayerDense(hiddenSize, normalizatoin, activation, dropout);
+                result[i] = new LayerDenseDef(hiddenSize, normalizatoin, activation, dropout);
                 result[i].HasBias = hasBias;
                 result[i].InitialWeightScale = initialWeightScale;
             }

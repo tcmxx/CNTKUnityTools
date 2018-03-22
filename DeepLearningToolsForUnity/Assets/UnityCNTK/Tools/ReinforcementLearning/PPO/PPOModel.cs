@@ -62,9 +62,9 @@ namespace UnityCNTK {
 
             //create actor network part
             var inputA = new InputLayerDense(stateSize);
-            var outputA = new OutputLayerDense(actionSize, ActivationFunction.None, OutputLayerDense.LossFunction.None);
+            var outputA = new OutputLayerDense(actionSize, null, OutputLayerDense.LossFunction.None);
             outputA.InitialWeightScale = initialWeightScale;
-            valueNetwork = new SequentialNetworkDense(inputA, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, true, NormalizationMethod.None, 0, initialWeightScale,ActivationFunction.Tanh), outputA, device);
+            valueNetwork = new SequentialNetworkDense(inputA, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, true, NormalizationMethod.None, 0, initialWeightScale, new TanhDef()), outputA, device);
             InputState = inputA.InputVariable;
             OutputMean = outputA.GetOutputVariable();
             OutputProbabilities = null; //this is for discrete action only.
@@ -78,9 +78,9 @@ namespace UnityCNTK {
             
             //create value network
             var inputC = new InputLayerCNTKVar(InputState);
-            var outputC = new OutputLayerDense(1, ActivationFunction.None, OutputLayerDense.LossFunction.None);
+            var outputC = new OutputLayerDense(1, null, OutputLayerDense.LossFunction.None);
             outputC.InitialWeightScale = initialWeightScale;
-            policyNetwork = new SequentialNetworkDense(inputC, LayerDefineHelper.DenseLayers(numLayers, hiddenSize,true, NormalizationMethod.None, 0, initialWeightScale, ActivationFunction.Tanh), outputC, device);
+            policyNetwork = new SequentialNetworkDense(inputC, LayerDefineHelper.DenseLayers(numLayers, hiddenSize,true, NormalizationMethod.None, 0, initialWeightScale, new TanhDef()), outputC, device);
             OutputValue = outputC.GetOutputVariable();
             ValueFunction = OutputValue.ToFunction();
             
@@ -122,9 +122,9 @@ namespace UnityCNTK {
 
             //create actor network part
             var inputA = new InputLayerDense(stateSize);
-            var outputA = new OutputLayerDense(actionSize, ActivationFunction.Softmax, OutputLayerDense.LossFunction.None);
+            var outputA = new OutputLayerDense(actionSize, new SoftmaxDef(), OutputLayerDense.LossFunction.None);
             outputA.InitialWeightScale = initialWeightScale;
-            valueNetwork = new SequentialNetworkDense(inputA, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, true, NormalizationMethod.None, 0, initialWeightScale, ActivationFunction.Tanh), outputA, device);
+            valueNetwork = new SequentialNetworkDense(inputA, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, true, NormalizationMethod.None, 0, initialWeightScale, new TanhDef()), outputA, device);
             InputState = inputA.InputVariable;
             OutputMean = null;
             OutputVariance = null;
@@ -134,9 +134,9 @@ namespace UnityCNTK {
 
             //create value network
             var inputC = new InputLayerCNTKVar(InputState);
-            var outputC = new OutputLayerDense(1, ActivationFunction.None, OutputLayerDense.LossFunction.None);
+            var outputC = new OutputLayerDense(1, null, OutputLayerDense.LossFunction.None);
             outputC.InitialWeightScale = initialWeightScale;
-            policyNetwork = new SequentialNetworkDense(inputC, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, true, NormalizationMethod.None, 0, initialWeightScale, ActivationFunction.Tanh), outputC, device);
+            policyNetwork = new SequentialNetworkDense(inputC, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, true, NormalizationMethod.None, 0, initialWeightScale, new TanhDef()), outputC, device);
             OutputValue = outputC.GetOutputVariable();
             ValueFunction = OutputValue.ToFunction();
         }

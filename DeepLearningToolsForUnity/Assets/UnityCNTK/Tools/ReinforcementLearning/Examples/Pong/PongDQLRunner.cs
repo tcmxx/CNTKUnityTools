@@ -37,23 +37,23 @@ public class PongDQLRunner : MonoBehaviour {
     public bool training = true;
 
     
-    public int Steps { get { return trainer.Steps; } }
+    public int Steps { get { return trainer!= null?trainer.Steps:0; } }
     [Header("Information")]
     public int currentEpisode = 0;
     public int leftWin = 0;
     public int rightWin = 0;
-    public AutoAverage winningRate100Left = new  AutoAverage(100);
-    public AutoAverage reward100EpiLeft = new AutoAverage(100);
+    public AutoAverage winningRate50Left = new  AutoAverage(50);
+    public AutoAverage reward50EpiLeft = new AutoAverage(50);
     protected float rewardLeftOneEpi = 0;
     public AutoAverage loss = new AutoAverage(500);
     // Use this for initialization
     void Start () {
-        QNetworkSimple network = new QNetworkSimple(6,3,2,64,DeviceDescriptor.CPUDevice,1f);
+        QNetworkSimple network = new QNetworkSimple(6,3,2,64,DeviceDescriptor.GPUDevice(0),0.4f);
         model = new DQLModel(network);
-        QNetworkSimple networkTarget = new QNetworkSimple(6, 3, 3, 64, DeviceDescriptor.CPUDevice, 1f);
+        QNetworkSimple networkTarget = new QNetworkSimple(6, 3, 2, 64, DeviceDescriptor.GPUDevice(0), 0.4f);
         modelTarget = new DQLModel(networkTarget);
-        trainer = new TrainerDQLSimple(model, modelTarget, LearnerDefs.MomentumSGDLearner(startLearningRate,0.9f),1, experienceBufferSize, 2048);
-        //trainer = new TrainerDQLSimple(model, null, LearnerDefs.AdamLearner(startLearningRate), 1, experienceBufferSize, experienceBufferSize);
+        //trainer = new TrainerDQLSimple(model, null, LearnerDefs.SGDLearner(startLearningRate),1, experienceBufferSize, 2048);
+        trainer = new TrainerDQLSimple(model, modelTarget, LearnerDefs.AdamLearner(startLearningRate), 1, experienceBufferSize, experienceBufferSize);
         //Save();//test
     }
 	
@@ -95,14 +95,14 @@ public class PongDQLRunner : MonoBehaviour {
             if(environment.GameWinPlayer == 0)
             {
                 leftWin++;
-                winningRate100Left.AddValue(1);
+                winningRate50Left.AddValue(1);
             }
             else
             {
                 rightWin++;
-                winningRate100Left.AddValue(0);
+                winningRate50Left.AddValue(0);
             }
-            reward100EpiLeft.AddValue(rewardLeftOneEpi);
+            reward50EpiLeft.AddValue(rewardLeftOneEpi);
             rewardLeftOneEpi = 0;
             environment.Reset();
         }

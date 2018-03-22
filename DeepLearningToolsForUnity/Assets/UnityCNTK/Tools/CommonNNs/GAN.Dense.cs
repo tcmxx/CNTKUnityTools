@@ -131,7 +131,7 @@ namespace UnityCNTK
             }
 
             var inputD = new InputLayerCNTKVar(concatenatedInput);
-            var outputLayerD = new OutputLayerDense(1, ActivationFunction.Sigmoid, OutputLayerDense.LossFunction.Square);
+            var outputLayerD = new OutputLayerDense(1, new SigmoidDef(), OutputLayerDense.LossFunction.Square);
             //create the discriminator sequential model
             DiscriminatorSequentialModel = new SequentialNetworkDense(inputD, LayerDefineHelper.DenseLayers(discriminatorLayerCount, discriminatorLayerSize, true,NormalizationMethod.None), outputLayerD, device);
             //real discriminator output
@@ -186,7 +186,7 @@ namespace UnityCNTK
             }
 
             var inputG = new InputLayerCNTKVar(concatenatedInput);
-            var outputLayerG = new OutputLayerDense(outputSize, ActivationFunction.None, OutputLayerDense.LossFunction.Square);
+            var outputLayerG = new OutputLayerDense(outputSize, null, OutputLayerDense.LossFunction.Square);
             GeneratorSequentialModel = new SequentialNetworkDense(inputG, LayerDefineHelper.DenseLayers(generatorLayerCount, generatorLayerSize, true, NormalizationMethod.None), outputLayerG, device);
             GeneratorOutput = GeneratorSequentialModel.OutputLayer.GetOutputVariable();
             InputTargetGenerator = GeneratorSequentialModel.OutputLayer.GetTargetInputVariable();

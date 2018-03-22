@@ -51,8 +51,8 @@ public class PoleDQLRunner : MonoBehaviour {
         model = new DQLModel(network);
         //QNetworkSimple networkTarget = new QNetworkSimple(2, 2, 2, 64, DeviceDescriptor.CPUDevice, 1f);
         //modelTarget = new DQLModel(networkTarget);
-        trainer = new TrainerDQLSimple(model, null, LearnerDefs.MomentumSGDLearner(startLearningRate,0.9f),1, experienceBufferSize, 500);
-        //trainer = new TrainerDQLSimple(model, modelTarget, LearnerDefs.AdamLearner(startLearningRate), 1, experienceBufferSize, 500);
+        //trainer = new TrainerDQLSimple(model, null, LearnerDefs.MomentumSGDLearner(startLearningRate,0.9f),1, experienceBufferSize, 500);
+        trainer = new TrainerDQLSimple(model, modelTarget, LearnerDefs.AdamLearner(startLearningRate), 1, experienceBufferSize, 500);
         //Save();//test
     }
 	
