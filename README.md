@@ -10,7 +10,8 @@ Current contents:
   - cGAN
 - Universal Style Transfer(https://arxiv.org/pdf/1705.08086.pdf)
 - Reinforcement Learning
-  - PPO(https://arxiv.org/pdf/1707.06347.pdf)
+  - Proximal Policy Optimization(PPO)(https://arxiv.org/pdf/1707.06347.pdf)
+  - Deep Q-Learning(DQL)(https://arxiv.org/abs/1312.5602)
   
 ## Platform and Installation
 Currently it only works on Windows. If you need to use GPU for NN, you also need a proper Nvidia graphic card.
