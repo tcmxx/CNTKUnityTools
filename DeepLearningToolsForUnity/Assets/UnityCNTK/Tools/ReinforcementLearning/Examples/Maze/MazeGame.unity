@@ -859,7 +859,7 @@ MonoBehaviour:
   mazeDimension:
     x: 6
     y: 6
-  regenerateMapOnReset: 0
+  regenerateMapOnReset: 1
   randomWallChance: 1
   wallChanceOnNonPath: 0.7
   maxStepAllowed: 20
@@ -1142,16 +1142,16 @@ MonoBehaviour:
   saveDataPath: MazeDQL.bytes
   experienceBufferSize: 500000
   batchSize: 64
-  discountFactor: 0.99
+  discountFactor: 0.98
   trainingStepInterval: 10
   stepsBeforeTrain: 100000
   changeRLSteps: 500000
-  startLearningRate: 0.02
-  endLearningRate: 0.002
+  startLearningRate: 0.05
+  endLearningRate: 0.001
   randomChanceStart: 1
   randomChanceEnd: 0.05
-  randomChanceDropSteps: 500000
-  timeScale: 1
+  randomChanceDropSteps: 300000
+  timeScale: 94
   training: 1
   currentEpisode: 0
 --- !u!1 &1715640920

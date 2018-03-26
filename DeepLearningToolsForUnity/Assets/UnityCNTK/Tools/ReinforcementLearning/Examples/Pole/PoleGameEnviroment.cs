@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityCNTK;
+using UnityCNTK.ReinforcementLearning;
 
 public class PoleGameEnviroment : MonoBehaviour, IRLEnvironment
 {

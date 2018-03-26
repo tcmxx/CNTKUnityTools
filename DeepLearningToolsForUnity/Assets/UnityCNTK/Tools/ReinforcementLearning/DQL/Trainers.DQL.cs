@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using CNTK;
 
-namespace UnityCNTK
+namespace UnityCNTK.ReinforcementLearning
 {
     
     public class TrainerDQLSimple

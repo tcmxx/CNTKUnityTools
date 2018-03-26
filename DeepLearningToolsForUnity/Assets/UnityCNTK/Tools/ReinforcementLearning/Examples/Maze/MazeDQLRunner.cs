@@ -5,6 +5,7 @@ using System.IO;
 using UnityCNTK;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityCNTK.ReinforcementLearning;
 
 public class MazeDQLRunner : MonoBehaviour {
     public Text scoreUI;
@@ -52,12 +53,15 @@ public class MazeDQLRunner : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-        QNetworkSimple network = new QNetworkSimple(environment.mazeDimension.x* environment.mazeDimension.y, 4, 3, 64, DeviceDescriptor.CPUDevice, 0.4f);
+        //QNetworkSimple network = new QNetworkSimple(environment.mazeDimension.x* environment.mazeDimension.y, 4, 3, 64, DeviceDescriptor.CPUDevice, 0.4f);
+        var network = new QNetworkConvSimple(environment.mazeDimension.x, environment.mazeDimension.y, 1,
+            4, new int[] { 3, 3 }, new int[] { 64, 128 }, new int[] { 1, 1 }, new bool[] { true, true }, 1, 128,
+            false, DeviceDescriptor.GPUDevice(0), 1f);
         model = new DQLModel(network);
-        QNetworkSimple networkTarget = new QNetworkSimple(environment.mazeDimension.x * environment.mazeDimension.y, 4, 3, 64, DeviceDescriptor.CPUDevice, 0.4f);
-        modelTarget = new DQLModel(networkTarget);
-        trainer = new TrainerDQLSimple(model, modelTarget, LearnerDefs.SGDLearner(startLearningRate), 1, experienceBufferSize, 500);
-        //trainer = new TrainerDQLSimple(model, modelTarget, LearnerDefs.AdamLearner(startLearningRate), 1, experienceBufferSize, 500);
+        //QNetworkSimple networkTarget = new QNetworkSimple(environment.mazeDimension.x * environment.mazeDimension.y, 4, 3, 64, DeviceDescriptor.CPUDevice, 0.4f);
+        //modelTarget = new DQLModel(networkTarget);
+        //trainer = new TrainerDQLSimple(model, modelTarget, LearnerDefs.SGDLearner(startLearningRate), 1, experienceBufferSize, 500);
+        trainer = new TrainerDQLSimple(model, null, LearnerDefs.SGDLearner(startLearningRate), 1, experienceBufferSize, 500);
         //Save();//test
     }
 

@@ -5,6 +5,7 @@ using UnityEngine;
 
 using UnityCNTK;
 using CNTK;
+using UnityCNTK.ReinforcementLearning;
 using UnityEngine.UI;
 using System.IO;
 

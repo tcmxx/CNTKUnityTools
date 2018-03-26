@@ -5,6 +5,7 @@ using UnityCNTK;
 using CNTK;
 using UnityEngine.UI;
 using System.IO;
+using UnityCNTK.ReinforcementLearning;
 
 public class PoleRunner : MonoBehaviour {
 
