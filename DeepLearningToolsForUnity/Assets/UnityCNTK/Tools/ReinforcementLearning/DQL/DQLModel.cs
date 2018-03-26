@@ -7,62 +7,8 @@ using CNTK;
 using UnityCNTK.LayerDefinitions;
 using MathNet.Numerics.Distributions;
 
-namespace UnityCNTK
+namespace UnityCNTK.ReinforcementLearning
 {
-    public abstract class QNetwork
-    {
-        public abstract int StateSize { get; protected set; }
-        public abstract int ActionSize { get; protected set; }
-        
-        public abstract Variable InputState { get; protected set; }
-
-        public abstract Variable OutputQs { get; protected set; }
-        
-        public abstract DeviceDescriptor Device { get; protected set; }
-
-    }
-
-
-    public class QNetworkSimple : QNetwork
-    {
-        public override int StateSize { get; protected set; }
-        public override int ActionSize { get; protected set; }
-        
-        public override Variable InputState { get; protected set; }
-
-        //actor outputs
-        public override Variable OutputQs { get; protected set; }
-        
-        public override DeviceDescriptor Device { get; protected set; }
-        public QNetworkSimple(int stateSize, int actionSize, int numLayers, int hiddenSize, DeviceDescriptor device, float initialWeightScale = 0.01f)
-        {
-            Device = device;
-            StateSize = stateSize;
-            ActionSize = actionSize;
-
-            //create actor network part
-            var inputA = new InputLayerDense(stateSize);
-            var outputA = new OutputLayerDense(hiddenSize,null, OutputLayerDense.LossFunction.None);
-            outputA.HasBias = false;
-            outputA.InitialWeightScale = initialWeightScale;
-            SequentialNetworkDense qNetwork = new SequentialNetworkDense(inputA, LayerDefineHelper.DenseLayers(numLayers, hiddenSize, false, NormalizationMethod.None, 0, initialWeightScale, new ReluDef()), outputA, device);
-
-            //seperate the advantage and value part. It is said to be better
-            var midStream = outputA.GetOutputVariable();
-            var advantageStream = CNTKLib.Slice(midStream, AxisVector.Repeat(new Axis(0), 1), IntVector.Repeat(0, 1), IntVector.Repeat(hiddenSize / 2, 1));
-            var valueStream = CNTKLib.Slice(midStream, AxisVector.Repeat(new Axis(0), 1), IntVector.Repeat(hiddenSize / 2, 1), IntVector.Repeat(hiddenSize, 1));
-            var adv = Layers.Dense(advantageStream, actionSize, device, false, "QNetworkAdvantage", initialWeightScale);
-            var value = Layers.Dense(valueStream, 1, device, false, "QNetworkValue", initialWeightScale);
-
-            InputState = inputA.InputVariable;
-            //OutputQs = outputA.GetOutputVariable();
-            OutputQs = value.Output+CNTKLib.Minus(adv, CNTKLib.ReduceMean(adv, Axis.AllStaticAxes())).Output;
-
-        }
-
-    }
-
-
     public class DQLModel
     {
 

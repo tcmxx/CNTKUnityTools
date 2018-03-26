@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityCNTK;
+using UnityCNTK.ReinforcementLearning;
 
 public class MazeEnvironment: MonoBehaviour,IRLEnvironment
 {
@@ -75,7 +76,7 @@ public class MazeEnvironment: MonoBehaviour,IRLEnvironment
         {
             for (int y = 0; y < mazeDimension.y; ++y)
             {
-                result[y + x * mazeDimension.y] = map[x, y];
+                result[y + x * mazeDimension.y] = (map[x, y]-1.5f)/1.5f;
             }
         }
         return result;

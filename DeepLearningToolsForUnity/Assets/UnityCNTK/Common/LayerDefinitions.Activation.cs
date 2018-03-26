@@ -37,7 +37,7 @@ namespace UnityCNTK.LayerDefinitions
         /// <summary>
         /// Construct a relu layer data for build
         /// </summary>
-        public SELUDef(float gamma,float alpha)
+        public SELUDef(float gamma = 1.0507f,float alpha = 1.6732f)
         {
             ParameterNames = new List<string>();
             Alpha = alpha;
@@ -53,6 +53,50 @@ namespace UnityCNTK.LayerDefinitions
             return BuildNetwork(input, device, name);
         }
     }
+    public class ELUDef : LayerDef
+    {
+        public override List<string> ParameterNames { get; protected set; }
+        /// <summary>
+        /// Construct a relu layer data for build
+        /// </summary>
+        public ELUDef()
+        {
+            ParameterNames = new List<string>();
+        }
+        protected override Function BuildNetwork(Variable input, DeviceDescriptor device, string name)
+        {
+            var c1 = CNTKLib.ELU(input, name);
+            return c1;
+        }
+        public override Function BuildNew(Variable input, DeviceDescriptor device, string name)
+        {
+            return BuildNetwork(input, device, name);
+        }
+    }
+
+    public class SwishDef : LayerDef
+    {
+        public override List<string> ParameterNames { get; protected set; }
+        public float Beta { get; private set; }
+        /// <summary>
+        /// Construct a relu layer data for build
+        /// </summary>
+        public SwishDef(float beta = 1)
+        {
+            Beta = beta;
+            ParameterNames = new List<string>();
+        }
+        protected override Function BuildNetwork(Variable input, DeviceDescriptor device, string name)
+        {
+            var c1 = CNTKLib.ElementTimes(input, CNTKLib.ElementTimes(Constant.Scalar(DataType.Float,Beta),CNTKLib.Sigmoid(input, name)));
+            return c1;
+        }
+        public override Function BuildNew(Variable input, DeviceDescriptor device, string name)
+        {
+            return BuildNetwork(input, device, name);
+        }
+    }
+
 
     public class LeakyReLUDef : LayerDef
     {

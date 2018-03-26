@@ -73,14 +73,14 @@ namespace UnityCNTK
         /// <param name="name"></param>
         /// <returns></returns>
         public static Function Convolution2D(Variable input, int outFeatureMapCount, int kernelWidth, int kernelHeight, DeviceDescriptor device, 
-            int stride=1, bool pad= false, bool bias = true, string name = "")
+            int stride=1, bool pad= false, bool bias = true, string name = "", float initialWeightScale = 1)
         {
             int numInputChannels = input.Shape[input.Shape.Rank - 1];
 
 
             //kernal
             var convParams = new Parameter(new int[] {  kernelWidth, kernelHeight, numInputChannels, outFeatureMapCount },
-                DataType.Float, CNTKLib.GlorotUniformInitializer(1, -1, 2), device, name + WeightSuffix);
+                DataType.Float, CNTKLib.GlorotNormalInitializer(initialWeightScale, -1, 2), device, name + WeightSuffix);
             //conv
             var convFunction = CNTKLib.Convolution(convParams, input, new int[] { stride, stride, outFeatureMapCount}, new bool[] { true,true, true}, new bool[] { pad, pad, false});
 
