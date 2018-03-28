@@ -36,14 +36,14 @@ public class Ball3DRunner : MonoBehaviour {
         PPONetworkContinuousSimple network;
         if (environment.is3D)
         {
-            network = new PPONetworkContinuousSimple(8, 2, 5, 64, DeviceDescriptor.CPUDevice, 0.01f);
+            network = new PPONetworkContinuousSimple(8, 2, 2, 32, DeviceDescriptor.CPUDevice, 0.01f);
             model = new PPOModel(network);
             trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate),1, 10000, 200);
             trainer.ClipEpsilon = 0.1f;
         }
         else
         {
-            network = new PPONetworkContinuousSimple(5, 1, 5, 64, DeviceDescriptor.CPUDevice, 0.01f);
+            network = new PPONetworkContinuousSimple(5, 2, 2, 32, DeviceDescriptor.CPUDevice, 0.01f);
             model = new PPOModel(network);
             trainer = new TrainerPPOSimple(model, LearnerDefs.AdamLearner(learningRate),1, 10000, 200);
         }

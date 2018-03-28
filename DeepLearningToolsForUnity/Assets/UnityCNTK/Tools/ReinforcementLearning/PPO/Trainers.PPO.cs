@@ -124,10 +124,10 @@ namespace UnityCNTK.ReinforcementLearning
                 float[] tempAction = Model.EvaluateActionContinuous(statesAll, out actionProbs);
                 for (int i = 0; i < NumberOfActor; ++i)
                 {
-                    actions[i] = new float[] { Model .ActionSize};
+                    actions[i] = new float[Model.ActionSize];
                     Array.Copy(tempAction, i* Model.ActionSize, actions[i], 0, Model.ActionSize);
                     LastAction[i] = actions[i];
-                    LastActionProbs[i] = new float[] { Model.ActionSize };
+                    LastActionProbs[i] = new float[Model.ActionSize];
                     Array.Copy(actionProbs, i * Model.ActionSize, LastActionProbs[i], 0, Model.ActionSize);
                 }
                 

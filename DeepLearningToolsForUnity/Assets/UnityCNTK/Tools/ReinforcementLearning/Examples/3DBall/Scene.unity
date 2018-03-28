@@ -506,6 +506,11 @@ Prefab:
       propertyPath: m_Name
       value: Game11
       objectReference: {fileID: 0}
+    - target: {fileID: 114077006630163286, guid: ff026d63a00abdc48ad6ddcff89aba04,
+        type: 2}
+      propertyPath: is3D
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: ff026d63a00abdc48ad6ddcff89aba04, type: 2}
   m_IsPrefabParent: 0
